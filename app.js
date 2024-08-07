@@ -1,36 +1,33 @@
-const { createBot, createProvider, createFlow, addKeyword, EVENTS, addAnswer } = require('@bot-whatsapp/bot')
+const { createBot, createProvider, createFlow, addKeyword, EVENTS, addAnswer } = require('@bot-whatsapp/bot');
 
-const QRPortalWeb = require('@bot-whatsapp/portal')
-const BaileysProvider = require('@bot-whatsapp/provider/baileys')
-const MockAdapter = require('@bot-whatsapp/database/mock')
-const axios = require('axios')/**Libreria para realizar peticiones */
+const QRPortalWeb = require('@bot-whatsapp/portal');
+const BaileysProvider = require('@bot-whatsapp/provider/baileys');
+const MockAdapter = require('@bot-whatsapp/database/mock');
+const axios = require('axios'); /**Libreria para realizar peticiones */
 const { v4: uuidv4 } = require('uuid'); // libreria para generar el uuid dinamico --npm install uuid--
 const nodemailer = require("nodemailer");
 const miObjetoGlobal = {};
 require('dotenv').config();
 const { google } = require('googleapis');
 
-
-
-
-
 /**INICIO CONEXION APP MOVIL*/
-// Función para enviar datos a la nueva API
-
-/**
- * 
- */
-
-
 // Función para enviar datos a la nueva API utilizando los datos recogidos por el bot
 async function enviarDatosANuevaAPI() {
     const url = 'https://backend.alercom.org/api/v1/events/webservice/store'; 
+    const emergencia = labels.emergencia[miObjetoGlobal.emergencia];
+    
+    // Verifica si la emergencia es válida antes de continuar
+    if (!emergencia) {
+        console.error("La emergencia especificada no es válida:", miObjetoGlobal.emergencia);
+        return;  // Puedes manejar el error como mejor consideres
+    }
+
     const payload = {
-        event_description: miObjetoGlobal.pregunta3 || "Descripción del evento aquí", // Descripción del evento
-        event_date: obtenerFechaActual().slice(0, 10), // Fecha del evento
-        event_place: miObjetoGlobal.pregunta2 || "Ubicación no especificada", // Lugar del evento
+        event_description: miObjetoGlobal.pregunta3 || "Descripción del evento aquí",
+        event_date: obtenerFechaActual().slice(0, 10),
+        event_place: miObjetoGlobal.pregunta2 || "Ubicación no especificada",
         event_aditional_information: null,
-        town_id: 1, // ID del pueblo, ajustar según sea necesario
+        town_id: 1,
         data: [
             {
                 question: "tipos_de_alerta",
@@ -41,7 +38,7 @@ async function enviarDatosANuevaAPI() {
             {
                 question: "caracteristica_de_la_alerta",
                 options: [
-                    { value: labels.emergencia[miObjetoGlobal.emergencia], option: labels.emergencia[miObjetoGlobal.emergencia].toLowerCase().replace(/ /g, "_") }
+                    { value: emergencia, option: emergencia.toLowerCase().replace(/ /g, "_") }
                 ]
             },
             {
@@ -54,7 +51,7 @@ async function enviarDatosANuevaAPI() {
             {
                 question: "numero_de_afectados",
                 options: [
-                    { value: "Especificar rango", option: "especificar_rango" } // Este valor debe ser ajustado según la lógica para determinar el número de afectados
+                    { value: "Especificar rango", option: "especificar_rango" }
                 ]
             }
         ]
@@ -70,30 +67,24 @@ async function enviarDatosANuevaAPI() {
     }
 }
 
-/*** */
-
-/**FIN CONEXION APP MOVIL*/
-
-
 /**INICIO CAPTURA DE IMAGEN */
-
+/*
 const fs = require('fs');
 const path = require('path');
-
-
+*/
 
 // Función para descargar la imagen desde una URL y guardarla temporalmente
+/*
 async function getImageBase64(url) {
     const response = await axios.get(url, { responseType: 'arraybuffer' });
     const base64Image = Buffer.from(response.data, 'binary').toString('base64');
     const mimeType = response.headers['content-type'];
     return `data:${mimeType};base64,${base64Image}`;
-}
+}*/
 
 /**FIN CAPTURA DE IMAGEN  */
 
 /**Inicio de geocodificacion inversa */
-
 const googleApiKey = 'AIzaSyBhvC7UAoNDk_d1jN7uGxaKpkDEnbacEqM'; // Reemplaza con tu clave de API de Google Maps
 
 async function geocodeLocation(lat, lon) {
@@ -135,16 +126,15 @@ async function geocodeLocation(lat, lon) {
     }
 }
 /**Fin geocodificacion inversa version free*/
-/**Envio de SMS proveedor Vonage */
 
+/**Envio de SMS proveedor Vonage */
 /*
 const { Vonage } = require('@vonage/server-sdk')
 
 const vonage = new Vonage({
-  apiKey: "1b331e87",
-  apiSecret: "UsP5N4gv7k7vi9LT"
+  apiKey: "TU_PI",
+  apiSecret: "TU_API_SECRET_DE _VONAGE"
 })
-
 
 const from = "Vonage APIs"
 const to = "573209429629"
@@ -159,29 +149,17 @@ async function sendSMS() {
 sendSMS();
 */
 
-
 /**MAPA API */
-
-
 function createGoogleMapsLink(lat, long) {
     return `https://www.google.com/maps/?q=${lat},${long}`;
 }
-
-
 
 function createMapUrl(lat, long) {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${long}&zoom=14&size=600x300&maptype=roadmap&markers=color:red%7Clabel:S%7C${lat},${long}&key=${apiKey}`;
 }
 
-
-
-
 /**FIN MAPA API */
-
-
-
-
 
 /**
  * CAMBIO ETIQUETAS AMIGABLES
@@ -256,14 +234,7 @@ function formatResponse(object) {
     return responseHTML;
 }
 
-
-
-
-
-/** FIN ETIQUETAS AMIGABLES*/
-
-
-/**Conexion KOBO*/
+/**Fecha*/
 
 function obtenerFechaActual() {
     // Obtener la fecha actual
@@ -329,23 +300,7 @@ function obtenerDataAxios() {
     return dataaxios;
 }
 
-// Función para obtener la configuración axios
-
-
-function obtenerConfigAxios(dataaxios) {
-    const configaxios = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'https://cat.mtr.pnud.org.co/api/v1/submissions',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${process.env.API_TOKEN}`
-        },
-        data: dataaxios
-    };
-
-    return configaxios;
-}
+/** */
 
 
 
@@ -369,77 +324,6 @@ function obtenerConfigAxios(dataaxios) {
 
 
 /****Tracduccion de etiquetas */
-
-
-/** Envio de correo*/
-
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    secure: true, // Use `true` for port 465, `false` for all other ports
-    port: 465,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    },
-  });
-
-
-/*
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  secure: true, // Use `true` for port 465, `false` for all other ports
-  port: 465,
-    auth: {
-        user: 'alercomchatbot@gmail.com',
-        pass: 'cwht oeao udps ekmj'
-    },
-});*/
-
-/**Inicio send mail telefono*/
-
-async function sendMail(includePhone = false) {
-    const formattedHtml = formatResponse(miObjetoGlobal);
-    const mapUrl = createMapUrl(miObjetoGlobal.pregunta2latitud, miObjetoGlobal.pregunta2longitud);
-    const googleMapsLink = createGoogleMapsLink(miObjetoGlobal.pregunta2latitud, miObjetoGlobal.pregunta2longitud);
-    let contactInfo = '';
-
-    if (includePhone) {
-        contactInfo = `<br><strong>Número de contacto de la persona que reporta el evento:</strong> ${miObjetoGlobal.telefono}`;
-    }
-
-    let imageBase64 = '';
-    if (miObjetoGlobal.foto && miObjetoGlobal.foto.url) {
-        imageBase64 = await getImageBase64(miObjetoGlobal.foto.url);
-    }
-
-    const mailOptions = {
-        from: '"Alercom te informa 📢" <process.env.EMAIL_USER>',
-        to: process.env.EMAIL_TO,
-        subject: "Hola, notificación de Alercom ✔",
-        text: "Hola! Esta es una notificación de Alercom.",
-        html: `<b>Hola! Esta es una notificación de Alercom</b><br><br>${formattedHtml}${contactInfo}<br><br>Ubicación del evento:<br><img src="${mapUrl}" alt="Ubicación del Evento"><br><br>Ver en Google Maps: <a href="${googleMapsLink}" target="_blank">Click aquí</a>`,
-        attachments: []
-    };
-
-    if (imageBase64) {
-        mailOptions.attachments.push({
-            filename: 'image.jpg',
-            content: imageBase64,
-            encoding: 'base64'
-        });
-    }
-
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log("Message sent: %s", info.messageId);
-}
-
-/**Fin send mail telefono*/
-
-
-
-
-
 
 
 
@@ -469,7 +353,7 @@ const flowPosibleConato4_Emergencia_ = addKeyword (['9','8'])
 
 
 /** */
-const flowConato2 = addKeyword(['1','2','3', '4','5','6','7'])
+const flowConato2 = addKeyword(['1', '2', '3', '4', '5', '6', '7'])
 .addAnswer(
     [
         'Hemos recibido tu reporte. Si deseas incluir tu número de teléfono en la información enviada, por favor escribe *9*. Si prefieres enviar el reporte sin incluir tu número de teléfono, escribe *8*.'
@@ -479,29 +363,19 @@ const flowConato2 = addKeyword(['1','2','3', '4','5','6','7'])
         if (ctx.body.trim() === '9') {
             miObjetoGlobal.telefono = ctx.from;
             console.log("El usuario eligió incluir su teléfono:", miObjetoGlobal.telefono);
-            await sendMail(true);
         } else if (ctx.body.trim() === '8') {
             console.log("El usuario eligió no incluir su teléfono.");
             miObjetoGlobal.telefono = null;
-            await sendMail(false);
         } else {
             return fallBack('Por favor, ingresa *9* para incluir tu número de teléfono o *8* para no incluirlo y enviar solo el reporte.');
         }
 
         // Enviar datos a la nueva API
         await enviarDatosANuevaAPI();
-
-        // Continuar con el envío de datos a Kobo o cualquier otra lógica
-        const dataaxios = obtenerDataAxios();
-        const configaxios = obtenerConfigAxios(dataaxios);
-        axios.request(configaxios).then((response) => {
-            console.log('Datos enviados correctamente a Kobo:', response.data);
-        }).catch((error) => {
-            console.log('Error al enviar datos a Kobo:', error);
-        });
     },
-    [flowPosibleConato4_Emergencia_] 
+    [flowPosibleConato4_Emergencia_]
 );
+
 
 /** */
 /** */
@@ -571,6 +445,7 @@ const flowFotoConato = addKeyword('1')
 /** */
 /** */
 
+
 const flowConato = addKeyword('1')
 .addAnswer('Compártenos tu ubicación a través de Whatsapp. Así podremos tener un punto de referencia cercano al lugar de la alerta/emergencia.')
 .addAnswer(
@@ -602,6 +477,9 @@ const flowConato = addKeyword('1')
     },
     [flowFotoConato]
 );
+
+
+
 
 /*******Fin Emergencia Incendio => Flow 3************************************************************************************************************************************************************************* */
 
@@ -646,7 +524,7 @@ const flowPosibleConato4_Emergencia = addKeyword (['9','8'])
 
 
 /** */
-const flowNivel_agua_incrementado2 = addKeyword(['1','2','3', '4','5','6','7'])
+const flowNivel_agua_incrementado2 = addKeyword(['1', '2', '3', '4', '5', '6', '7'])
 .addAnswer(
     [
         'Hemos recibido tu reporte. Si deseas incluir tu número de teléfono en la información enviada, por favor escribe *9*. Si prefieres enviar el reporte sin incluir tu número de teléfono, escribe *8*.'
@@ -656,29 +534,19 @@ const flowNivel_agua_incrementado2 = addKeyword(['1','2','3', '4','5','6','7'])
         if (ctx.body.trim() === '9') {
             miObjetoGlobal.telefono = ctx.from;
             console.log("El usuario eligió incluir su teléfono:", miObjetoGlobal.telefono);
-            await sendMail(true);
         } else if (ctx.body.trim() === '8') {
             console.log("El usuario eligió no incluir su teléfono.");
             miObjetoGlobal.telefono = null;
-            await sendMail(false);
         } else {
             return fallBack('Por favor, ingresa *9* para incluir tu número de teléfono o *8* para no incluirlo y enviar solo el reporte.');
         }
 
         // Enviar datos a la nueva API
         await enviarDatosANuevaAPI();
-
-        // Continuar con el envío de datos a Kobo o cualquier otra lógica
-        const dataaxios = obtenerDataAxios();
-        const configaxios = obtenerConfigAxios(dataaxios);
-        axios.request(configaxios).then((response) => {
-            console.log('Datos enviados correctamente a Kobo:', response.data);
-        }).catch((error) => {
-            console.log('Error al enviar datos a Kobo:', error);
-        });
     },
     [flowPosibleConato4_Emergencia] 
 );
+
 //** */
 
 
@@ -750,6 +618,7 @@ const flowFotoNivel_agua_incrementado = addKeyword('2')
 
 
 /** */
+
 const flowNivel_agua_incrementado = addKeyword('2')
 .addAnswer('Compártenos tu ubicación a través de Whatsapp. Así podremos tener un punto de referencia cercano al lugar de la alerta/emergencia.')
 .addAnswer(
@@ -781,6 +650,68 @@ const flowNivel_agua_incrementado = addKeyword('2')
     },
     [flowFotoNivel_agua_incrementado]
 );
+
+
+
+
+
+/*
+const flowNivel_agua_incrementado = addKeyword('2')
+.addAnswer('Compártenos tu ubicación a través de Whatsapp. Así podremos tener un punto de referencia cercano al lugar de la alerta/emergencia.')
+.addAnswer(
+    [
+        '• Recuerda que para compartir la ubicación debes dar clic en el más (+) o en el clip (📎) que aparece en la parte inferior del chat, luego oprimir el ícono de ubicación y dar clic en la opción “enviar tu ubicación actual”.',
+        'Si no puedes compartir la ubicación automáticamente, escribe *manual* para ingresar la ubicación manualmente.'
+    ],
+    { capture: true },
+    async (ctx, { fallBack }) => {
+        if (ctx.body.toLowerCase() === 'manual') {
+            return fallBack('Por favor, ingresa el nombre del departamento.');
+        }
+
+        if (!ctx.message || !ctx.message.locationMessage) {
+            return fallBack('No se recibió la ubicación. Por favor intenta de nuevo o escribe *manual* para ingresar la ubicación manualmente.');
+        }
+
+        // Extraer y guardar la latitud y longitud
+        const lat = ctx.message.locationMessage.degreesLatitude;
+        const lon = ctx.message.locationMessage.degreesLongitude;
+        miObjetoGlobal.pregunta2latitud = lat;
+        miObjetoGlobal.pregunta2longitud = lon;
+        miObjetoGlobal.pregunta2 = `${lat} ${lon}`;
+
+        // Llamar a la función de geocodificación
+        try {
+            await geocodeLocation(lat, lon);
+            console.log(miObjetoGlobal);
+        } catch (error) {
+            console.error('Error al geocodificar la ubicación:', error.message);
+            return fallBack('No se pudo obtener el nombre del departamento y municipio, por favor ingresa la ubicación manualmente.');
+        }
+    },
+    [flowFotoNivel_agua_incrementado]
+)
+.addAnswer({ capture: true },
+    async (ctx, { nextStep }) => {
+        miObjetoGlobal.departamento = ctx.body.trim();
+        nextStep('Ahora, ingresa el nombre del municipio.');
+    }
+)
+.addAnswer({ capture: true },
+    async (ctx, { nextStep }) => {
+        miObjetoGlobal.municipio = ctx.body.trim();
+        nextStep('Por favor, ingresa el nombre del barrio o vereda.');
+    }
+)
+.addAnswer({ capture: true },
+    async (ctx, { flowComplete }) => {
+        miObjetoGlobal.barrio_vereda = ctx.body.trim();
+        console.log(`Ubicación manual ingresada: Departamento: ${miObjetoGlobal.departamento}, Municipio: ${miObjetoGlobal.municipio}, Barrio/Vereda: ${miObjetoGlobal.barrio_vereda}`);
+        flowComplete('Gracias por proporcionar la información. Procesando la ubicación...');
+    }
+);*/
+
+
 /** */
 
 
@@ -819,7 +750,7 @@ const flowPosibleConato4 = addKeyword (['9','8'])
 /** */
 
 /** */
-const flowPosibleNivel_agua_incrementado2 = addKeyword(['1','2','3', '4','5','6','7'])
+const flowPosibleNivel_agua_incrementado2 = addKeyword(['1', '2', '3', '4', '5', '6', '7'])
 .addAnswer(
     [
         'Hemos recibido tu reporte. Si deseas incluir tu número de teléfono en la información enviada, por favor escribe *9*. Si prefieres enviar el reporte sin incluir tu número de teléfono, escribe *8*.'
@@ -829,29 +760,19 @@ const flowPosibleNivel_agua_incrementado2 = addKeyword(['1','2','3', '4','5','6'
         if (ctx.body.trim() === '9') {
             miObjetoGlobal.telefono = ctx.from;
             console.log("El usuario eligió incluir su teléfono:", miObjetoGlobal.telefono);
-            await sendMail(true);
         } else if (ctx.body.trim() === '8') {
             console.log("El usuario eligió no incluir su teléfono.");
             miObjetoGlobal.telefono = null;
-            await sendMail(false);
         } else {
             return fallBack('Por favor, ingresa *9* para incluir tu número de teléfono o *8* para no incluirlo y enviar solo el reporte.');
         }
 
         // Enviar datos a la nueva API
         await enviarDatosANuevaAPI();
-
-        // Continuar con el envío de datos a Kobo o cualquier otra lógica
-        const dataaxios = obtenerDataAxios();
-        const configaxios = obtenerConfigAxios(dataaxios);
-        axios.request(configaxios).then((response) => {
-            console.log('Datos enviados correctamente a Kobo:', response.data);
-        }).catch((error) => {
-            console.log('Error al enviar datos a Kobo:', error);
-        });
     },
     [flowPosibleConato4] 
 );
+
 /** */
 
    
@@ -921,6 +842,7 @@ const flowFotoNivelDelAgua = addKeyword('2')
 
 
 /** */ 
+
 const flowPosibleNivel_agua_incrementado = addKeyword('2')
 .addAnswer('Compártenos tu ubicación a través de Whatsapp. Así podremos tener un punto de referencia cercano al lugar de la alerta/emergencia.')
 .addAnswer(
@@ -952,6 +874,66 @@ const flowPosibleNivel_agua_incrementado = addKeyword('2')
     },
     [flowFotoNivelDelAgua]
 );
+
+
+/*
+const flowPosibleNivel_agua_incrementado = addKeyword(['2'])
+.addAnswer('Compártenos tu ubicación a través de Whatsapp. Así podremos tener un punto de referencia cercano al lugar de la alerta/emergencia.')
+.addAnswer(
+    [
+        '• Recuerda que para compartir la ubicación debes dar clic en el más (+) o en el clip (📎) que aparece en la parte inferior del chat, luego oprimir el ícono de ubicación y dar clic en la opción “enviar tu ubicación actual”.',
+        'Si no puedes compartir la ubicación automáticamente, escribe *manual* para ingresar la ubicación manualmente.'
+    ],
+    { capture: true },
+    async (ctx, { fallBack }) => {
+        if (ctx.body.toLowerCase() === 'manual') {
+            return fallBack('Por favor, ingresa el nombre del departamento.');
+        }
+
+        if (!ctx.message || !ctx.message.locationMessage) {
+            return fallBack('No se recibió la ubicación. Por favor intenta de nuevo o escribe *manual* para ingresar la ubicación manualmente.');
+        }
+
+        // Extraer y guardar la latitud y longitud
+        const lat = ctx.message.locationMessage.degreesLatitude;
+        const lon = ctx.message.locationMessage.degreesLongitude;
+        miObjetoGlobal.pregunta2latitud = lat;
+        miObjetoGlobal.pregunta2longitud = lon;
+        miObjetoGlobal.pregunta2 = `${lat} ${lon}`;
+
+        // Llamar a la función de geocodificación
+        try {
+            await geocodeLocation(lat, lon);
+            console.log(miObjetoGlobal);
+        } catch (error) {
+            console.error('Error al geocodificar la ubicación:', error.message);
+            return fallBack('No se pudo obtener el nombre del departamento y municipio, por favor ingresa la ubicación manualmente.');
+        }
+    },
+    [flowFotoNivelDelAgua]
+)
+.addAnswer({ capture: true },
+    async (ctx, { nextStep }) => {
+        miObjetoGlobal.departamento = ctx.body.trim();
+        nextStep('Ahora, ingresa el nombre del municipio.');
+    }
+)
+.addAnswer({ capture: true },
+    async (ctx, { nextStep }) => {
+        miObjetoGlobal.municipio = ctx.body.trim();
+        nextStep('Por favor, ingresa el nombre del barrio o vereda.');
+    }
+)
+.addAnswer({ capture: true },
+    async (ctx, { flowComplete }) => {
+        miObjetoGlobal.barrio_vereda = ctx.body.trim();
+        console.log(`Ubicación manual ingresada: Departamento: ${miObjetoGlobal.departamento}, Municipio: ${miObjetoGlobal.municipio}, Barrio/Vereda: ${miObjetoGlobal.barrio_vereda}`);
+        flowComplete('Gracias por proporcionar la información. Procesando la ubicación...');
+    }
+);*/
+
+
+
 /** */
 
 
@@ -992,7 +974,7 @@ const flowPosibleConato4_ = addKeyword (['9','8'])
 /** */
 
 /** */
-const flowPosibleConato3 = addKeyword(['1','2','3', '4','5','6'])
+const flowPosibleConato3 = addKeyword(['1', '2', '3', '4', '5', '6'])
 .addAnswer(
     [
         'Hemos recibido tu reporte. Si deseas incluir tu número de teléfono en la información enviada, por favor escribe *9*. Si prefieres enviar el reporte sin incluir tu número de teléfono, escribe *8*.'
@@ -1002,32 +984,18 @@ const flowPosibleConato3 = addKeyword(['1','2','3', '4','5','6'])
         if (ctx.body.trim() === '9') {
             miObjetoGlobal.telefono = ctx.from;
             console.log("El usuario eligió incluir su teléfono:", miObjetoGlobal.telefono);
-            await sendMail(true);
         } else if (ctx.body.trim() === '8') {
             console.log("El usuario eligió no incluir su teléfono.");
             miObjetoGlobal.telefono = null;
-            await sendMail(false);
         } else {
             return fallBack('Por favor, ingresa *9* para incluir tu número de teléfono o *8* para no incluirlo y enviar solo el reporte.');
         }
 
         // Enviar datos a la nueva API
         await enviarDatosANuevaAPI();
-
-        // Continuar con el envío de datos a Kobo o cualquier otra lógica
-        const dataaxios = obtenerDataAxios();
-        const configaxios = obtenerConfigAxios(dataaxios);
-        axios.request(configaxios).then((response) => {
-            console.log('Datos enviados correctamente a Kobo:', response.data);
-        }).catch((error) => {
-            console.log('Error al enviar datos a Kobo:', error);
-        });
     },
     [flowPosibleConato4_] 
 );
-
-
-
 
 /** */
 
@@ -1135,15 +1103,18 @@ const flowPosibleConato = addKeyword(['1'])
     [flowFoto]
 );
 
+
+
  
 /** Fin Alerta conato => flowdos ***************************************************************************************************************************************************************/
 
 
 /**INICIO EVENTOS */
+/*
 const ChatGPTClass = require('./ChatGPTClass');
 const ChatGPTInstance = new ChatGPTClass()
-
-
+*/
+/*
 const flowTres = addKeyword('3') 
 .addAnswer('¿Qué dudas tienes respecto a las alertas y emergencia?', { capture: true },
 async (ctx, { flowDynamic }) => {
@@ -1152,7 +1123,7 @@ async (ctx, { flowDynamic }) => {
   const message = respuesta.text
   await flowDynamic(message)
 }
-)
+)*/
 
 
 
@@ -1215,7 +1186,7 @@ const  flowUno = addKeyword('1')
 
 const flowPrincipal = addKeyword(['EVENTS.WELCOME','9'])
     .addAnswer('¡Hola! Soy ALERCOM, tu chatbot comunitario. Aquí puedes reportar alertas o emergencias que se presenten en territorio para notificar rápidamente a las autoridades locales.')
-    .addAnswer('Antes de comenzar, por favor revisa nuestra *Politica de datos*: http://surl.li/tmwjr')
+    .addAnswer('Antes de comenzar, por favor revisa nuestra *Politica de datos*: http://surl.li/upkly')
     .addAnswer(
         [
             '*¿Qué reporte deseas realizar el día de hoy?* 🌍🚨',
